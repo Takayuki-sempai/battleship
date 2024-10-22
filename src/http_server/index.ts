@@ -53,5 +53,24 @@ wss.on('connection', (ws: WebSocket) => {
             id: request.id,
         }
         ws.send(JSON.stringify(messageResponse));
+
+        const roomUpdate = {
+            type: "update_room",
+            data: JSON.stringify(
+                [
+                    {
+                        roomId: 1,
+                        roomUsers:
+                            [
+                                {
+                                    name: "Test user",
+                                    index: 42,
+                                }
+                            ],
+                    },
+                ]),
+            id: 0,
+        }
+        ws.send(JSON.stringify(roomUpdate));
     });
 });
