@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as http from 'http';
 import {WebSocketServer, WebSocket, RawData} from 'ws';
+import {handleRegistration, RegistrationRequest} from "./service/register.js";
 
 export const httpServer = http.createServer(function (req, res) {
     const __dirname = path.resolve(path.dirname(''));
@@ -17,7 +18,13 @@ export const httpServer = http.createServer(function (req, res) {
     });
 });
 
-const wss = new WebSocketServer({ port: 3000 });
+const wss = new WebSocketServer({port: 3000});
+
+interface WebsocketMessage {
+    type: string,
+    data: string,
+    id: number,
+}
 
 wss.on('connection', (ws: WebSocket) => {
     // Send initial data to the client
@@ -26,15 +33,25 @@ wss.on('connection', (ws: WebSocket) => {
 
     // Track connected clients
     // ...
-ws.on('close', () => {
-    console.log("Connect close")
-    // Code to handle client disconnection
-});
-ws.on('message', (message: RawData) => {
-    // Handle incoming messages
-    console.log('Received message:', message.toString());
+    ws.on('close', () => {
+        console.log("Connect close")
+        // Code to handle client disconnection
+    });
+    ws.on('message', (message: RawData) => {
+        const request = JSON.parse(message.toString()) as unknown as WebsocketMessage
+        console.log('Received message:', request);
+        const data = JSON.parse(request.data)
 
-    // Send a response to the client
-    ws.send('Message received successfully!');
-});
+        let response = {}
+        if(request.type === "reg") {
+            response = handleRegistration(data as unknown as RegistrationRequest)
+        }
+
+        const messageResponse = {
+            type: request.type,
+            data: JSON.stringify(response),
+            id: request.id,
+        }
+        ws.send(JSON.stringify(messageResponse));
+    });
 });
