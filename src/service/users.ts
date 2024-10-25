@@ -1,4 +1,5 @@
 import {UsersDatabase} from "../database/users";
+import {User} from "../database/types";
 
 const db = UsersDatabase()
 

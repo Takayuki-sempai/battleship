@@ -1,9 +1,9 @@
-interface UserCreateRequest {
+export interface UserCreateRequest {
     name: string,
     password: string
 }
 
-interface User {
+export interface User {
     id: number;
     name: string,
     password: string

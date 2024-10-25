@@ -1,3 +1,5 @@
+import {User, UserCreateRequest} from "./types";
+
 export const UsersDatabase = () => {
     const users: Map<number, User> = new Map();
     let currentUserId = 0;

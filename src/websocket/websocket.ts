@@ -1,5 +1,6 @@
 import {RawData, WebSocket, WebSocketServer} from "ws";
 import {handleRegistration} from "../handler/register";
+import {IdHolder, WebsocketMessage, WebSocketMessageTypes} from "../handler/type";
 
 export const startWebsocket = (port: number)=> {
     const wss = new WebSocketServer({port});

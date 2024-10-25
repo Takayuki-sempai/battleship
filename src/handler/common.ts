@@ -1,3 +1,5 @@
+import {WebSocketMessageTypes} from "./type";
+
 export const createWsResponse = (responseData: object, responseType: WebSocketMessageTypes): string  => {
     const messageResponse = {
         type: responseType,
