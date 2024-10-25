@@ -1,5 +1,10 @@
+interface UserCreateRequest {
+    name: string,
+    password: string
+}
+
 interface User {
-    id: string;
+    id: number;
     name: string,
     password: string
 }

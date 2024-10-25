@@ -1,26 +1,32 @@
 export const UsersDatabase = () => {
-    const users: Map<string, User> = new Map();
+    const users: Map<number, User> = new Map();
+    let currentUserId = 0;
+
+    const getNextUserId = () => currentUserId++
 
     const getAllUsers = (): User[] => {
         return [...users].map(([_, value]) => value);
     };
 
-    const findUser = (userId: string): User | undefined => {
+    const findUser = (userId: number): User | undefined => {
         return users.get(userId);
     };
 
-    const saveUser = (user: User) => {
-        users.set(user.id, user);
+    const findUserByName = (username: string): User | undefined => {
+        return Array.from(users.values()).find((user) => user.name === username);
     };
 
-    const removeUser = (userId: string): boolean => {
-        return users.delete(userId);
+    const createUser = (userRequest: UserCreateRequest): User => {
+        const id = getNextUserId()
+        const user = {...userRequest, id}
+        users.set(id, user);
+        return user;
     };
 
     return {
         getAllUsers,
         findUser,
-        saveUser,
-        removeUser,
+        findUserByName,
+        createUser,
     };
 };

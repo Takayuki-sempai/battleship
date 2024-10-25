@@ -1,7 +1,6 @@
-// import {UsersDatabase} from "../database/users";
-// import { v7 as generateUuid } from 'uuid';
+import {UsersDatabase} from "../database/users";
 
-// const db = UsersDatabase()
+const db = UsersDatabase()
 
 export interface RegistrationRequest {
     name: string,
@@ -15,14 +14,30 @@ export interface RegistrationResponse {
     errorText: string,
 }
 
+const createResponse = (user: User): RegistrationResponse => ({
+    name: user.name,
+    index: user.id,
+    error: false,
+    errorText: "",
+})
+
+const createErrorResponse = (error: string): RegistrationResponse => ({
+    name: "",
+    index: 0,
+    error: true,
+    errorText: error,
+})
+
 export const register = (request: RegistrationRequest): RegistrationResponse => {
-    // const newUser: User = {
-    //     id: generateUuid()
-    // }
-    return {
-        name: request.name,
-        index: 0,
-        error: false,
-        errorText: "",
+    const user = db.findUserByName(request.name)
+    if (user) {
+        if(user.password == request.password) {
+            return createResponse(user)
+        } else {
+            return createErrorResponse(`User with name ${request.name} already exists`)
+        }
+    } else {
+        const user = db.createUser(request)
+        return createResponse(user)
     }
 }

@@ -1,5 +1,4 @@
 import {RawData, WebSocket, WebSocketServer} from "ws";
-import {WebsocketMessage} from "../handler/type";
 import {handleRegistration} from "../handler/register";
 
 export const startWebsocket = (port: number)=> {
@@ -9,7 +8,6 @@ export const startWebsocket = (port: number)=> {
         const idHolder: IdHolder = {id: undefined}
         // Send initial data to the client
         console.log("Connect")
-        //ws.send('Welcome to the WebSocket server!');
 
         // Track connected clients
         // ...
