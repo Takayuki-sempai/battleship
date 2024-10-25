@@ -1,3 +1,8 @@
+// import {UsersDatabase} from "../database/users";
+// import { v7 as generateUuid } from 'uuid';
+
+// const db = UsersDatabase()
+
 export interface RegistrationRequest {
     name: string,
     password: string,
@@ -10,7 +15,10 @@ export interface RegistrationResponse {
     errorText: string,
 }
 
-export const handleRegistration = (request: RegistrationRequest): RegistrationResponse => {
+export const register = (request: RegistrationRequest): RegistrationResponse => {
+    // const newUser: User = {
+    //     id: generateUuid()
+    // }
     return {
         name: request.name,
         index: 0,
