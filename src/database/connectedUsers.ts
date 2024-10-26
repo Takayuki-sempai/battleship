@@ -1,25 +1,11 @@
 import {WebSocket} from "ws";
 
-export interface ConnectionDatabase {
-    getAllConnections: () => WebSocket[],
-    findConnectionById: (userId: number) => WebSocket,
-    addConnection: (userId: number, connection: WebSocket) => void
-}
+const userConnections: Map<number, WebSocket> = new Map();
 
-export const createConnectionDatabase = (): ConnectionDatabase => {
-    const userConnections: Map<number, WebSocket> = new Map();
+export const getAllConnections = (): WebSocket[] => Array.from(userConnections.values())
 
-    const getAllConnections = (): WebSocket[] => Array.from(userConnections.values())
+export const findConnectionById = (userId: number): WebSocket => userConnections.get(userId)!! //TODO возможно эксепшен
 
-    const findConnectionById = (userId: number): WebSocket => userConnections.get(userId)!! //TODO возможно эксепшен
-
-    const addConnection = (userId: number, connection: WebSocket) => {
-        userConnections.set(userId, connection)
-    }
-
-    return {
-        getAllConnections,
-        findConnectionById,
-        addConnection
-    }
-}
+export const addConnection = (userId: number, connection: WebSocket) => {
+    userConnections.set(userId, connection)
+};

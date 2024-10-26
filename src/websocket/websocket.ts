@@ -1,12 +1,7 @@
 import {RawData, WebSocket, WebSocketServer} from "ws";
-import {createUserHandlers} from "../handler/user";
+import {handleRegistration} from "../handler/register";
 import {IdHolder, WebSocketMessageTypes} from "../handler/type";
-import {createRoomHandlers} from "../handler/room";
-import {createUserDatabase} from "../database/users";
-import {createRoomDatabase} from "../database/rooms";
-import {createConnectionDatabase} from "../database/connectedUsers";
-import {createBroadcastHandlers} from "../handler/broadcast";
-import {createGameHandlers} from "../handler/game";
+import {handleAddUserToRoom, handleCreateRoom} from "../handler/room";
 
 interface WebsocketMessage {
     type: string,
@@ -14,15 +9,7 @@ interface WebsocketMessage {
     id: number,
 }
 
-export const startWebsocket = (port: number) => {
-    const userDb = createUserDatabase()
-    const roomDb = createRoomDatabase()
-    const connectionDb = createConnectionDatabase()
-    const broadcastHandlers = createBroadcastHandlers(userDb, roomDb, connectionDb)
-    const userHandlers = createUserHandlers(userDb, connectionDb, broadcastHandlers)
-    const gameHandlers = createGameHandlers(connectionDb)
-    const roomHandlers = createRoomHandlers(roomDb, broadcastHandlers, gameHandlers)
-
+export const startWebsocket = (port: number)=> {
     const wss = new WebSocketServer({port});
 
     wss.on('connection', (ws: WebSocket) => {
@@ -42,13 +29,13 @@ export const startWebsocket = (port: number) => {
 
             switch(request.type) {
                 case WebSocketMessageTypes.REQ:
-                    userHandlers.handleRegistration(ws, idHolder, request.data);
+                    handleRegistration(ws, idHolder, request.data);
                     break;
                 case WebSocketMessageTypes.CREATE_ROOM:
-                    roomHandlers.handleCreateRoom(idHolder);
+                    handleCreateRoom(idHolder);
                     break;
                 case WebSocketMessageTypes.ADD_USER_TO_ROOM:
-                    roomHandlers.handleAddUserToRoom(idHolder, request.data);
+                    handleAddUserToRoom(idHolder, request.data);
                     break;
                 default: console.log(`Handler for message with type ${request.type} not found`);
             }
