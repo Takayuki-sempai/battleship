@@ -1,6 +1,6 @@
 import {createWsResponse} from "./common";
 import {WebSocketMessageTypes} from "./type";
-import {findConnectionById} from "../database/connectedUsers";
+import {ConnectionDatabase} from "../database/connectedUsers";
 import {RoomEntity} from "../database/types";
 
 interface CreateGameResponse {
@@ -8,13 +8,23 @@ interface CreateGameResponse {
     idPlayer: number
 }
 
-export const sendCreateGame = (room: RoomEntity) => {
-    room.userIds.forEach(userId => {
-        const response: CreateGameResponse = {
-            idGame: room.id,
-            idPlayer: userId
-        }
-        const message = createWsResponse(response, WebSocketMessageTypes.CREATE_GAME)
-        findConnectionById(userId).send(message)
-    })
+export interface GameHandlers {
+    sendCreateGame: (room: RoomEntity) => void
+}
+
+export const createGameHandlers = (connectionDb: ConnectionDatabase, ): GameHandlers => {
+    const sendCreateGame = (room: RoomEntity) => {
+        room.userIds.forEach(userId => {
+            const response: CreateGameResponse = {
+                idGame: room.id,
+                idPlayer: userId
+            }
+            const message = createWsResponse(response, WebSocketMessageTypes.CREATE_GAME)
+            connectionDb.findConnectionById(userId).send(message)
+        })
+    }
+
+    return {
+        sendCreateGame,
+    }
 }
