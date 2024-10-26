@@ -2,6 +2,12 @@ import * as gameDb from "../database/games";
 import {Cell, GamePlayer, GameShip, ShipType, StringCell} from "../database/types";
 import {WebSocket} from "ws";
 
+export interface GamePlayerDto {
+    connection: WebSocket,
+    id: number,
+    gameShips: GameShipsDto
+}
+
 export interface GameShipsDto {
     gameId: number,
     ships: ShipDto[]
@@ -12,6 +18,23 @@ export interface ShipDto {
     direction: boolean,
     type: ShipType,
     length: number,
+}
+
+export const getGameState = (gameId: number): GamePlayerDto[] => {
+    const game = gameDb.findGame(gameId)!! //TODO что если игра не найдена
+    return game.players.map((player) => ({
+        connection: player.connection,
+        id: player.id,
+        gameShips: {
+            gameId: gameId,
+            ships: player.ships.map(ship => ({
+                position: ship.startCell,
+                direction: ship.direction,
+                type: ship.type,
+                length: ship.length,
+            })),
+        }
+    }))
 }
 
 export const isGamePrepared = (gameId: number): boolean => {
@@ -37,6 +60,7 @@ const createShip = (requestShip: ShipDto): GameShip => {
     return {
         startCell: requestShip.position,
         cells: cells,
+        direction: requestShip.direction,
         type: requestShip.type,
         length: requestShip.length,
     }

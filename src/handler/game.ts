@@ -13,9 +13,10 @@ interface CreateGameResponse {
 }
 
 export const sendCreateGame = (room: RoomEntity) => {
+    const gameId = gameService.createGame()
     room.userIds.forEach(userId => {
         const response: CreateGameResponse = {
-            idGame: gameService.createGame(),
+            idGame: gameId,
             idPlayer: userId
         }
         const message = createWsResponse(response, WebSocketMessageTypes.CREATE_GAME)
@@ -24,7 +25,11 @@ export const sendCreateGame = (room: RoomEntity) => {
 }
 
 const sendStartGame = (gameId: number)=> {
-    console.log(gameId) //TODO not implemented
+    const gamePlayers = gameService.getGameState(gameId)
+    gamePlayers.forEach(player => {
+        const message = createWsResponse(player.gameShips, WebSocketMessageTypes.START_GAME)
+        player.connection.send(message)
+    })
 }
 
 export const handleAddShips = (idHolder: IdHolder, request: string) => {

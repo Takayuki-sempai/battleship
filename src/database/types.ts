@@ -37,6 +37,7 @@ export interface GameShip {
     startCell: Cell,
     cells: Map<StringCell, boolean>,
     type: ShipType,
+    direction: boolean,
     length: number,
 }
 
