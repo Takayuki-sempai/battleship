@@ -4,7 +4,7 @@ import {IdGenerator} from "../utils/utils";
 const rooms: Map<number, RoomEntity> = new Map();
 const idGenerator = IdGenerator()
 
-export const getEmptyRooms = (): RoomEntity[] => {
+export const getAvailableRooms = (): RoomEntity[] => {
     return [...rooms.values()].filter(room => room.userIds.length === 1);
 };
 
@@ -16,7 +16,7 @@ export const addRoom = (userId: number) => {
     })
 };
 
-export const addToRoom = (userId: number, roomId: number): RoomEntity => {
+export const addUserToRoom = (userId: number, roomId: number): RoomEntity => {
     const room = rooms.get(roomId)!!;//TODO EntityNotFoundException
     room.userIds.push(userId);
     return room;

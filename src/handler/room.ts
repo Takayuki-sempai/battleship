@@ -1,14 +1,18 @@
 import {IdHolder} from "./type";
-import {addUserToRoom, AddUserToRoomRequest, createRoom} from "../service/rooms";
 import {sendCreateGame} from "./game";
 import {sendAvailableRooms} from "./broadcast";
+import {addRoom, addUserToRoom} from "../database/rooms";
+
+interface AddUserToRoomRequest {
+    indexRoom: number,
+}
 
 export const handleCreateRoom = (idHolder: IdHolder) => {
     if(!idHolder.id) {
         console.log("User id not found")
         return
     }
-    createRoom(idHolder.id)
+    addRoom(idHolder.id)
     sendAvailableRooms()
 }
 
@@ -18,7 +22,7 @@ export const handleAddUserToRoom = (idHolder: IdHolder, request: string) => {
         console.log("User id not found")
         return
     }
-    const room = addUserToRoom(idHolder.id, data)
+    const room = addUserToRoom(idHolder.id, data.indexRoom)
     sendAvailableRooms()
     sendCreateGame(room)
 }

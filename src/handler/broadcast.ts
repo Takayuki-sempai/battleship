@@ -1,8 +1,8 @@
-import {getAvailableRooms} from "../service/rooms";
 import {findUser} from "../database/users";
 import {WebSocketMessageTypes} from "./type";
 import {getAllConnections} from "../database/connectedUsers";
 import {CreateRoomResponse, createWsResponse} from "./common";
+import {getAvailableRooms} from "../database/rooms";
 
 export const sendAvailableRooms = () => {
     const rooms = getAvailableRooms()
