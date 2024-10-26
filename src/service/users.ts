@@ -1,7 +1,5 @@
-import {UsersDatabase} from "../database/users";
 import {User} from "../database/types";
-
-const db = UsersDatabase()
+import {createUser, findUserByName} from "../database/users";
 
 export interface RegistrationRequest {
     name: string,
@@ -30,7 +28,7 @@ const createErrorResponse = (error: string): RegistrationResponse => ({
 })
 
 export const register = (request: RegistrationRequest): RegistrationResponse => {
-    const user = db.findUserByName(request.name)
+    const user = findUserByName(request.name)
     if (user) {
         if(user.password == request.password) {
             return createResponse(user)
@@ -38,7 +36,7 @@ export const register = (request: RegistrationRequest): RegistrationResponse => 
             return createErrorResponse(`User with name ${request.name} already exists`)
         }
     } else {
-        const user = db.createUser(request)
+        const user = createUser(request)
         return createResponse(user)
     }
 }
