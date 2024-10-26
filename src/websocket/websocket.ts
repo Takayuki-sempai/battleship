@@ -2,6 +2,7 @@ import {RawData, WebSocket, WebSocketServer} from "ws";
 import {handleRegistration} from "../handler/users";
 import {IdHolder, WebSocketMessageTypes} from "../handler/type";
 import {handleAddUserToRoom, handleCreateRoom} from "../handler/room";
+import {handleAddShips} from "../handler/game";
 
 interface WebsocketMessage {
     type: string,
@@ -36,6 +37,9 @@ export const startWebsocket = (port: number)=> {
                     break;
                 case WebSocketMessageTypes.ADD_USER_TO_ROOM:
                     handleAddUserToRoom(idHolder, request.data);
+                    break;
+                case WebSocketMessageTypes.ADD_SHIPS:
+                    handleAddShips(idHolder, request.data);
                     break;
                 default: console.log(`Handler for message with type ${request.type} not found`);
             }
