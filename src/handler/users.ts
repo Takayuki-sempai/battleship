@@ -1,9 +1,9 @@
 import {WebSocket} from "ws";
 import {createWsResponse} from "./common";
 import {IdHolder, WebSocketMessageTypes} from "./type";
-import {addConnection} from "../database/connectedUsers";
-import {sendAvailableRooms} from "./broadcast";
-import {createUser, findUserByName} from "../database/users";
+import * as connectionsDb from "../database/connections";
+import * as broadcast from "./broadcast";
+import * as usersDb from "../database/users";
 import {UserEntity} from "../database/types";
 
 interface RegistrationRequest {
@@ -32,8 +32,8 @@ const createErrorResponse = (error: string): RegistrationResponse => ({
     errorText: error,
 })
 
-const register = (request: RegistrationRequest): RegistrationResponse => {
-    const user = findUserByName(request.name)
+const users = (request: RegistrationRequest): RegistrationResponse => {
+    const user = usersDb.findUserByName(request.name)
     if (user) {
         if(user.password == request.password) {
             return createResponse(user)
@@ -41,19 +41,19 @@ const register = (request: RegistrationRequest): RegistrationResponse => {
             return createErrorResponse(`User with name ${request.name} already exists`)
         }
     } else {
-        const user = createUser(request)
+        const user = usersDb.createUser(request)
         return createResponse(user)
     }
 }
 
 export const handleRegistration = (connection: WebSocket, idHolder: IdHolder, request: string) => {
     const data = JSON.parse(request) as unknown as RegistrationRequest
-    const registerResponse = register(data)
+    const registerResponse = users(data)
     if(registerResponse.index !== 0) { //TODO Лучше делать маппинг тут и кидать исключения
         idHolder.id = registerResponse.index
-        addConnection(registerResponse.index, connection)
+        connectionsDb.addConnection(registerResponse.index, connection)
     }
     const userMessage = createWsResponse(registerResponse, WebSocketMessageTypes.REQ)
     connection.send(userMessage)
-    sendAvailableRooms()
+    broadcast.sendAvailableRooms() //TODO запретить заходить под пользователем если пользователь уже подключен
 }

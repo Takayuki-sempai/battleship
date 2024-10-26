@@ -1,7 +1,7 @@
 import {IdHolder} from "./type";
-import {sendCreateGame} from "./game";
-import {sendAvailableRooms} from "./broadcast";
-import {addRoom, addUserToRoom} from "../database/rooms";
+import * as game from "./game";
+import * as broadcast from "./broadcast";
+import * as roomsDb from "../database/rooms";
 
 interface AddUserToRoomRequest {
     indexRoom: number,
@@ -12,8 +12,8 @@ export const handleCreateRoom = (idHolder: IdHolder) => {
         console.log("User id not found")
         return
     }
-    addRoom(idHolder.id)
-    sendAvailableRooms()
+    roomsDb.addRoom(idHolder.id)
+    broadcast.sendAvailableRooms()
 }
 
 export const handleAddUserToRoom = (idHolder: IdHolder, request: string) => {
@@ -22,7 +22,7 @@ export const handleAddUserToRoom = (idHolder: IdHolder, request: string) => {
         console.log("User id not found")
         return
     }
-    const room = addUserToRoom(idHolder.id, data.indexRoom)
-    sendAvailableRooms()
-    sendCreateGame(room)
+    const room = roomsDb.addUserToRoom(idHolder.id, data.indexRoom)
+    broadcast.sendAvailableRooms()
+    game.sendCreateGame(room)
 }

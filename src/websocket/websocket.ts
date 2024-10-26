@@ -1,5 +1,5 @@
 import {RawData, WebSocket, WebSocketServer} from "ws";
-import {handleRegistration} from "../handler/register";
+import {handleRegistration} from "../handler/users";
 import {IdHolder, WebSocketMessageTypes} from "../handler/type";
 import {handleAddUserToRoom, handleCreateRoom} from "../handler/room";
 

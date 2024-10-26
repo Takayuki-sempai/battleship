@@ -1,6 +1,6 @@
 import {createWsResponse} from "./common";
 import {WebSocketMessageTypes} from "./type";
-import {findConnectionById} from "../database/connectedUsers";
+import * as connectionsDb from "../database/connections";
 import {RoomEntity} from "../database/types";
 
 interface CreateGameResponse {
@@ -15,6 +15,6 @@ export const sendCreateGame = (room: RoomEntity) => {
             idPlayer: userId
         }
         const message = createWsResponse(response, WebSocketMessageTypes.CREATE_GAME)
-        findConnectionById(userId).send(message)
+        connectionsDb.findConnectionById(userId).send(message)
     })
 }

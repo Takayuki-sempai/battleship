@@ -1,15 +1,15 @@
-import {findUser} from "../database/users";
+import * as usersDb from "../database/users";
 import {WebSocketMessageTypes} from "./type";
-import {getAllConnections} from "../database/connectedUsers";
+import * as connectionsDb from "../database/connections";
 import {CreateRoomResponse, createWsResponse} from "./common";
-import {getAvailableRooms} from "../database/rooms";
+import * as roomsDb from "../database/rooms";
 
 export const sendAvailableRooms = () => {
-    const rooms = getAvailableRooms()
+    const rooms = roomsDb.getAvailableRooms()
     const roomsResponse: CreateRoomResponse[] = rooms.map(room => ({
         roomId: room.id,
         roomUsers: room.userIds.map(userId => {
-            const user = findUser(userId)
+            const user = usersDb.findUser(userId)
             return {
                 name: user!!.name, //TODO возможно обрабатывать
                 index: user!!.id,
@@ -17,7 +17,7 @@ export const sendAvailableRooms = () => {
         })
     }))
     const roomsMessage = createWsResponse(roomsResponse, WebSocketMessageTypes.UPDATE_ROOM)
-    getAllConnections().forEach(connection => {
+    connectionsDb.getAllConnections().forEach(connection => {
         connection.send(roomsMessage)
     })
 }
