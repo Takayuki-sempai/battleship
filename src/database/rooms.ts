@@ -16,6 +16,8 @@ export const addRoom = (userId: number) => {
     })
 };
 
-export const addToRoom = (userId: number, roomId: number) => {
-    rooms.get(roomId)?.userIds.push(userId) //TODO EntityNotFoundException
+export const addToRoom = (userId: number, roomId: number): RoomEntity => {
+    const room = rooms.get(roomId)!!;//TODO EntityNotFoundException
+    room.userIds.push(userId);
+    return room;
 }

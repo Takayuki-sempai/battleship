@@ -13,6 +13,6 @@ export const createRoom = (userId: number) => {
     addRoom(userId)
 }
 
-export const addUserToRoom = (userId: number, request: AddUserToRoomRequest) => {
+export const addUserToRoom = (userId: number, request: AddUserToRoomRequest): RoomEntity => {
     return addToRoom(userId, request.indexRoom)
 }

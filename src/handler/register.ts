@@ -1,8 +1,9 @@
 import {register, RegistrationRequest} from "../service/users";
 import {WebSocket} from "ws";
-import {createWsResponse, sendAvailableRooms} from "./common";
+import {createWsResponse} from "./common";
 import {IdHolder, WebSocketMessageTypes} from "./type";
 import {addConnection} from "../database/connectedUsers";
+import {sendAvailableRooms} from "./broadcast";
 
 export const handleRegistration = (connection: WebSocket, idHolder: IdHolder, request: string) => {
     const data = JSON.parse(request) as unknown as RegistrationRequest

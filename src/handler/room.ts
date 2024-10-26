@@ -1,6 +1,7 @@
 import {IdHolder} from "./type";
-import {sendAvailableRooms} from "./common";
 import {addUserToRoom, AddUserToRoomRequest, createRoom} from "../service/rooms";
+import {sendCreateGame} from "./game";
+import {sendAvailableRooms} from "./broadcast";
 
 export const handleCreateRoom = (idHolder: IdHolder) => {
     if(!idHolder.id) {
@@ -17,6 +18,7 @@ export const handleAddUserToRoom = (idHolder: IdHolder, request: string) => {
         console.log("User id not found")
         return
     }
-    addUserToRoom(idHolder.id, data)
+    const room = addUserToRoom(idHolder.id, data)
     sendAvailableRooms()
+    sendCreateGame(room)
 }
