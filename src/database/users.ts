@@ -6,10 +6,6 @@ export const UsersDatabase = () => {
 
     const getNextUserId = () => currentUserId++
 
-    const getAllUsers = (): User[] => {
-        return [...users].map(([_, value]) => value);
-    };
-
     const findUser = (userId: number): User | undefined => {
         return users.get(userId);
     };
@@ -26,7 +22,6 @@ export const UsersDatabase = () => {
     };
 
     return {
-        getAllUsers,
         findUser,
         findUserByName,
         createUser,
