@@ -1,4 +1,4 @@
-import {User} from "../database/types";
+import {UserEntity} from "../database/types";
 import {createUser, findUserByName} from "../database/users";
 
 export interface RegistrationRequest {
@@ -13,7 +13,7 @@ export interface RegistrationResponse {
     errorText: string,
 }
 
-const createResponse = (user: User): RegistrationResponse => ({
+const createResponse = (user: UserEntity): RegistrationResponse => ({
     name: user.name,
     index: user.id,
     error: false,

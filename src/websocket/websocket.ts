@@ -1,7 +1,13 @@
 import {RawData, WebSocket, WebSocketServer} from "ws";
 import {handleRegistration} from "../handler/register";
-import {IdHolder, WebsocketMessage, WebSocketMessageTypes} from "../handler/type";
-import {handleCreateRoom} from "../handler/room";
+import {IdHolder, WebSocketMessageTypes} from "../handler/type";
+import {handleAddUserToRoom, handleCreateRoom} from "../handler/room";
+
+interface WebsocketMessage {
+    type: string,
+    data: string,
+    id: number,
+}
 
 export const startWebsocket = (port: number)=> {
     const wss = new WebSocketServer({port});
@@ -26,7 +32,10 @@ export const startWebsocket = (port: number)=> {
                     handleRegistration(ws, idHolder, request.data);
                     break;
                 case WebSocketMessageTypes.CREATE_ROOM:
-                    handleCreateRoom(ws, idHolder);
+                    handleCreateRoom(idHolder);
+                    break;
+                case WebSocketMessageTypes.ADD_USER_TO_ROOM:
+                    handleAddUserToRoom(idHolder, request.data);
                     break;
                 default: console.log(`Handler for message with type ${request.type} not found`);
             }

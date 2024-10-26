@@ -1,23 +1,15 @@
-import {WebSocket} from "ws";
-
 export interface UserCreateRequest {
     name: string,
     password: string
 }
 
-export interface User {
+export interface UserEntity {
     id: number;
     name: string,
     password: string
 }
 
-export interface RoomUser {
+export interface RoomEntity {
     id: number,
-    name: string,
-    connection: WebSocket,
-}
-
-export interface Room {
-    id: number,
-    users: RoomUser[],
+    userIds: number[],
 }

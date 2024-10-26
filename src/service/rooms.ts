@@ -1,32 +1,18 @@
-import {RoomUser, User} from "../database/types";
-import {addRoom, getEmptyRooms} from "../database/rooms";
-import {WebSocket} from "ws";
+import {RoomEntity} from "../database/types";
+import {addRoom, addToRoom, getEmptyRooms} from "../database/rooms";
 
-export interface RoomResponse {
-    roomId: number,
-    roomUsers: RoomResponseUser[],
+export interface AddUserToRoomRequest {
+    indexRoom: number,
 }
 
-interface RoomResponseUser {
-    name: string,
-    index: number,
+export const getAvailableRooms = (): RoomEntity[] => {
+    return getEmptyRooms()
 }
 
-export const getAvailableRooms = (): RoomResponse[] => {
-    return getEmptyRooms().map(room => ({
-        roomId: room.id,
-        roomUsers: room.users.map(user => ({
-            name: user.name,
-            index: user.id,
-        }))
-    }))
+export const createRoom = (userId: number) => {
+    addRoom(userId)
 }
 
-export const createRoom = (connection: WebSocket, user: User) => {
-    const roomUser: RoomUser = {
-        id: user.id,
-        name: user.name,
-        connection: connection,
-    }
-    addRoom(roomUser)
+export const addUserToRoom = (userId: number, request: AddUserToRoomRequest) => {
+    return addToRoom(userId, request.indexRoom)
 }

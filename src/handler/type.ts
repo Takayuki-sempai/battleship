@@ -1,9 +1,3 @@
-export interface WebsocketMessage {
-    type: string,
-    data: string,
-    id: number,
-}
-
 export interface IdHolder {
     id?: number
 }
@@ -11,5 +5,6 @@ export interface IdHolder {
 export enum WebSocketMessageTypes {
     REQ = "reg",
     UPDATE_ROOM = "update_room",
-    CREATE_ROOM = "create_room"
+    CREATE_ROOM = "create_room",
+    ADD_USER_TO_ROOM = "add_user_to_room"
 }
