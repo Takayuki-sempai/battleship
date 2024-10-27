@@ -1,28 +1,15 @@
 import * as gameDb from "../database/games";
-import {Cell, GamePlayer, GameShip, ShipType, StringCell} from "../database/types";
+import {GamePlayer, GameShip, Point, StringPoint} from "../database/types";
 import {WebSocket} from "ws";
-
-export interface GamePlayerDto {
-    connection: WebSocket,
-    gameShips: GameShipsDto
-}
-
-export interface GameTurnDto {
-    connection: WebSocket,
-    currentPlayer: number
-}
-
-export interface GameShipsDto {
-    gameId: number,
-    ships: ShipDto[]
-}
-
-export interface ShipDto {
-    position: Cell,
-    direction: boolean,
-    type: ShipType,
-    length: number,
-}
+import {
+    AttackStatus,
+    GameAttackRequest,
+    GameAttackResponse,
+    GamePlayerDto,
+    GameShipsDto,
+    GameTurnDto,
+    ShipDto
+} from "./gameTypes";
 
 export const playerTurn = (gameId: number): GameTurnDto[] => {
     const game = gameDb.findGame(gameId)!! //TODO что если игра не найдена
@@ -41,7 +28,7 @@ export const getGameState = (gameId: number): GamePlayerDto[] => {
         id: player.id,
         gameShips: {
             gameId: gameId,
-            ships: player.ships.map(ship => ({
+            ships: player.aliveShips.map(ship => ({
                 position: ship.startCell,
                 direction: ship.direction,
                 type: ship.type,
@@ -61,7 +48,7 @@ export const createGame = (): number => {
 }
 
 const createShip = (requestShip: ShipDto): GameShip => {
-    const cells = new Map<StringCell, boolean>()
+    const cells = new Map<StringPoint, boolean>()
     if (requestShip.direction) {
         for (let i = 0; i < requestShip.length; i++) {
             cells.set(JSON.stringify({x: requestShip.position.x, y: requestShip.position.y + i}), false)
@@ -85,7 +72,40 @@ export const addShips = (request: GameShipsDto, userId: number, connection: WebS
     const player: GamePlayer = {
         connection: connection,
         id: userId,
-        ships: request.ships.map(createShip)
+        aliveShips: request.ships.map(createShip)
     }
     game.players.push(player)
+}
+
+export const attack = (request: GameAttackRequest): GameAttackResponse => {
+    const game = gameDb.findGame(request.gameId)!! //TODO что если игра не найдена
+    const attackedPlayer = game.players.find((player) => player.id !== request.indexPlayer)!! //TODO что если игра не найдена
+    const attackPoint: Point = {
+        x: request.x,
+        y: request.y,
+    }
+    const createResult = (status: AttackStatus): GameAttackResponse => ({
+        playersConnections: game.players.map(player => player.connection),
+        attackInfo: {
+            position: attackPoint,
+            currentPlayer: request.indexPlayer,
+            status: status,
+        }
+    })
+    const stringAttackPoint = JSON.stringify(attackPoint)
+    const attackedShip = attackedPlayer.aliveShips.find(ship => ship.cells.get(stringAttackPoint) != null)
+    if(attackedShip == null) {
+        return createResult(AttackStatus.MISS)
+    }
+    const alreadyHit = attackedShip.cells.get(stringAttackPoint)
+    if(alreadyHit) {
+        return createResult(AttackStatus.MISS)
+    }
+    attackedShip.cells.set(stringAttackPoint, true)
+    if(Array.from(attackedShip.cells.values()).every(cellState => cellState)) {
+        attackedPlayer.aliveShips.splice(attackedPlayer.aliveShips.indexOf(attackedShip), 1)
+        return createResult(AttackStatus.KILLED)
+    } else {
+        return createResult(AttackStatus.SHOT)
+    }
 }

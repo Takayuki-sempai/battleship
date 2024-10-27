@@ -5,7 +5,7 @@ import * as gameService from "../service/game";
 import {RoomEntity} from "../database/types";
 import * as roomsDb from "../database/rooms";
 import * as broadcast from "./broadcast";
-import {GameShipsDto} from "../service/game";
+import {GameAttackRequest, GameShipsDto} from "../service/gameTypes";
 
 interface CreateGameResponse {
     idGame: number,
@@ -55,4 +55,14 @@ export const handleAddShips = (idHolder: IdHolder, request: string) => {
     }
     roomsDb.addRoom(idHolder.id)
     broadcast.sendAvailableRooms()
+}
+
+export const handleAttack = (request: string) => {
+    const data = JSON.parse(request) as unknown as GameAttackRequest
+    const attackResult = gameService.attack(data)
+    const message = createWsResponse(attackResult.attackInfo, WebSocketMessageTypes.ATTACK)
+    attackResult.playersConnections.forEach(connection => {
+        connection.send(message)
+    })
+    sendGameTurn(data.gameId)
 }

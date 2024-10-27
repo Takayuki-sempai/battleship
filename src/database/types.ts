@@ -31,20 +31,20 @@ export interface GameEntity {
 export interface GamePlayer {
     connection: WebSocket,
     id: number,
-    ships: GameShip[]
+    aliveShips: GameShip[]
 }
 
 export interface GameShip {
-    startCell: Cell,
-    cells: Map<StringCell, boolean>,
+    startCell: Point,
+    cells: Map<StringPoint, boolean>,
     type: ShipType,
     direction: boolean,
     length: number,
 }
 
-export type StringCell = string
+export type StringPoint = string
 
-export interface Cell {
+export interface Point {
     x: number,
     y: number,
 }
