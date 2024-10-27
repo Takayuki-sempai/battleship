@@ -1,5 +1,5 @@
 import {WebSocket} from "ws";
-import {Point, ShipType} from "../database/types";
+import {CellStatus, GameShip, Point} from "../database/types";
 
 export interface GamePlayerDto {
     connection: WebSocket,
@@ -13,14 +13,7 @@ export interface GameTurnDto {
 
 export interface GameShipsDto {
     gameId: number,
-    ships: ShipDto[]
-}
-
-export interface ShipDto {
-    position: Point,
-    direction: boolean,
-    type: ShipType,
-    length: number,
+    ships: GameShip[]
 }
 
 export interface GameAttackRequest {
@@ -38,11 +31,5 @@ export interface GameAttackResponse {
 export interface GameAttackInfo {
     position: Point,
     currentPlayer: number,
-    status: AttackStatus
-}
-
-export enum AttackStatus {
-    MISS = "miss",
-    KILLED = "killed",
-    SHOT = "shot"
+    status: CellStatus
 }

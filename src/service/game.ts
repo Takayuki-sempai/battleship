@@ -1,14 +1,12 @@
 import * as gameDb from "../database/games";
-import {GamePlayer, GameShip, Point, StringPoint} from "../database/types";
+import {CellStatus, GameBoard, GamePlayer, GameShip, ShipCounter} from "../database/types";
 import {WebSocket} from "ws";
 import {
-    AttackStatus,
     GameAttackRequest,
     GameAttackResponse,
     GamePlayerDto,
     GameShipsDto,
     GameTurnDto,
-    ShipDto
 } from "./gameTypes";
 
 export const playerTurn = (gameId: number): GameTurnDto[] => {
@@ -28,12 +26,7 @@ export const getGameState = (gameId: number): GamePlayerDto[] => {
         id: player.id,
         gameShips: {
             gameId: gameId,
-            ships: player.aliveShips.map(ship => ({
-                position: ship.startCell,
-                direction: ship.direction,
-                type: ship.type,
-                length: ship.length,
-            })),
+            ships: player.ships
         }
     }))
 }
@@ -47,32 +40,28 @@ export const createGame = (): number => {
     return gameDb.createGame({isTurnsFirst: true, players: []})
 }
 
-const createShip = (requestShip: ShipDto): GameShip => {
-    const cells = new Map<StringPoint, boolean>()
-    if (requestShip.direction) {
-        for (let i = 0; i < requestShip.length; i++) {
-            cells.set(JSON.stringify({x: requestShip.position.x, y: requestShip.position.y + i}), false)
+export const addShip = (ship: GameShip, board: GameBoard) => {
+    const shipCounter: ShipCounter = { lives: ship.length }
+    if (ship.direction) {
+        for (let i = 0; i < ship.length; i++) {
+            board[ship.position.x]![ship.position.y + i] = shipCounter //TODO возможно проверки длины
         }
     } else {
-        for (let i = 0; i < requestShip.length; i++) {
-            cells.set(JSON.stringify({x: requestShip.position.x + i, y: requestShip.position.y}), false)
+        for (let i = 0; i < ship.length; i++) {
+            board[ship.position.x + i]![ship.position.y] = shipCounter //TODO возможно проверки длины
         }
-    }
-    return {
-        startCell: requestShip.position,
-        cells: cells,
-        direction: requestShip.direction,
-        type: requestShip.type,
-        length: requestShip.length,
     }
 }
 
 export const addShips = (request: GameShipsDto, userId: number, connection: WebSocket) => {
     const game = gameDb.findGame(request.gameId)!! //TODO что если игра не найдена
+    const board: GameBoard = Array.from({length: 40}, () => Array(10).fill(0))
+    request.ships.map(ship => addShip(ship, board))
     const player: GamePlayer = {
         connection: connection,
         id: userId,
-        aliveShips: request.ships.map(createShip)
+        board: board,
+        ships: request.ships
     }
     game.players.push(player)
 }
@@ -80,32 +69,31 @@ export const addShips = (request: GameShipsDto, userId: number, connection: WebS
 export const attack = (request: GameAttackRequest): GameAttackResponse => {
     const game = gameDb.findGame(request.gameId)!! //TODO что если игра не найдена
     const attackedPlayer = game.players.find((player) => player.id !== request.indexPlayer)!! //TODO что если игра не найдена
-    const attackPoint: Point = {
-        x: request.x,
-        y: request.y,
-    }
-    const createResult = (status: AttackStatus): GameAttackResponse => ({
+    const createResult = (status: CellStatus): GameAttackResponse => ({
         playersConnections: game.players.map(player => player.connection),
         attackInfo: {
-            position: attackPoint,
+            position: {
+                x: request.x,
+                y: request.y,
+            },
             currentPlayer: request.indexPlayer,
             status: status,
         }
     })
-    const stringAttackPoint = JSON.stringify(attackPoint)
-    const attackedShip = attackedPlayer.aliveShips.find(ship => ship.cells.get(stringAttackPoint) != null)
-    if(attackedShip == null) {
-        return createResult(AttackStatus.MISS)
-    }
-    const alreadyHit = attackedShip.cells.get(stringAttackPoint)
-    if(alreadyHit) {
-        return createResult(AttackStatus.MISS)
-    }
-    attackedShip.cells.set(stringAttackPoint, true)
-    if(Array.from(attackedShip.cells.values()).every(cellState => cellState)) {
-        attackedPlayer.aliveShips.splice(attackedPlayer.aliveShips.indexOf(attackedShip), 1)
-        return createResult(AttackStatus.KILLED)
+    const attackedCell = attackedPlayer.board[request.x]![request.y]! //TODO Проверка обоих массивов
+    let newCellStatus: CellStatus
+    if(attackedCell == 0) {
+        newCellStatus = CellStatus.MISS
+    } else if(typeof attackedCell == 'object') {
+        attackedCell.lives--
+        if(attackedCell.lives == 0) {
+            newCellStatus = CellStatus.KILLED
+        } else {
+            newCellStatus = CellStatus.SHOT
+        }
     } else {
-        return createResult(AttackStatus.SHOT)
+        newCellStatus = attackedCell
     }
+    attackedPlayer.board[request.x]!![request.y] = newCellStatus
+    return createResult(newCellStatus)
 }

@@ -2,7 +2,7 @@ import {createWsResponse} from "./common";
 import {IdHolder, WebSocketMessageTypes} from "./type";
 import * as connectionsDb from "../database/connections";
 import * as gameService from "../service/game";
-import {RoomEntity} from "../database/types";
+import {CellStatus, RoomEntity} from "../database/types";
 import * as roomsDb from "../database/rooms";
 import * as broadcast from "./broadcast";
 import {GameAttackRequest, GameShipsDto} from "../service/gameTypes";
@@ -64,5 +64,7 @@ export const handleAttack = (request: string) => {
     attackResult.playersConnections.forEach(connection => {
         connection.send(message)
     })
-    sendGameTurn(data.gameId)
+    if(attackResult.attackInfo.status == CellStatus.MISS) {
+        sendGameTurn(data.gameId)
+    }
 }
