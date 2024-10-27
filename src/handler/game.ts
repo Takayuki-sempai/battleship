@@ -24,12 +24,21 @@ export const sendCreateGame = (room: RoomEntity) => {
     })
 }
 
+const sendGameTurn = (gameId: number)=> {
+    const turnInfo = gameService.playerTurn(gameId)
+    turnInfo.forEach(info => {
+        const message = createWsResponse({ currentPlayer: info.currentPlayer }, WebSocketMessageTypes.TURN)
+        info.connection.send(message)
+    })
+}
+
 const sendStartGame = (gameId: number)=> {
     const gamePlayers = gameService.getGameState(gameId)
     gamePlayers.forEach(player => {
         const message = createWsResponse(player.gameShips, WebSocketMessageTypes.START_GAME)
         player.connection.send(message)
     })
+    sendGameTurn(gameId)
 }
 
 export const handleAddShips = (idHolder: IdHolder, request: string) => {

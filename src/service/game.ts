@@ -4,8 +4,12 @@ import {WebSocket} from "ws";
 
 export interface GamePlayerDto {
     connection: WebSocket,
-    id: number,
     gameShips: GameShipsDto
+}
+
+export interface GameTurnDto {
+    connection: WebSocket,
+    currentPlayer: number
 }
 
 export interface GameShipsDto {
@@ -18,6 +22,16 @@ export interface ShipDto {
     direction: boolean,
     type: ShipType,
     length: number,
+}
+
+export const playerTurn = (gameId: number): GameTurnDto[] => {
+    const game = gameDb.findGame(gameId)!! //TODO что если игра не найдена
+    const currentPlayerId = game.isTurnsFirst ? game.players[0]!!.id : game.players[1]!!.id //TODO возможно добавть проверки
+    game.isTurnsFirst = !game.isTurnsFirst
+    return game.players.map(player => ({
+        connection: player.connection,
+        currentPlayer: currentPlayerId
+    }))
 }
 
 export const getGameState = (gameId: number): GamePlayerDto[] => {
@@ -43,17 +57,17 @@ export const isGamePrepared = (gameId: number): boolean => {
 }
 
 export const createGame = (): number => {
-    return gameDb.createGame({players: []})
+    return gameDb.createGame({isTurnsFirst: true, players: []})
 }
 
 const createShip = (requestShip: ShipDto): GameShip => {
     const cells = new Map<StringCell, boolean>()
-    if(requestShip.direction) {
-        for(let i = 0; i < requestShip.length; i++) {
+    if (requestShip.direction) {
+        for (let i = 0; i < requestShip.length; i++) {
             cells.set(JSON.stringify({x: requestShip.position.x, y: requestShip.position.y + i}), false)
         }
     } else {
-        for(let i = 0; i < requestShip.length; i++) {
+        for (let i = 0; i < requestShip.length; i++) {
             cells.set(JSON.stringify({x: requestShip.position.x + i, y: requestShip.position.y}), false)
         }
     }
