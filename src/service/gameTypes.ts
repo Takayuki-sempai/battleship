@@ -25,7 +25,8 @@ export interface GameAttackRequest {
 
 export interface GameAttackResponse {
     playersConnections: WebSocket[],
-    attackInfo: GameAttackInfo
+    isMiss: boolean,
+    attackInfos: GameAttackInfo[]
 }
 
 export interface GameAttackInfo {

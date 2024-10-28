@@ -2,7 +2,7 @@ import {createWsResponse} from "./common";
 import {IdHolder, WebSocketMessageTypes} from "./type";
 import * as connectionsDb from "../database/connections";
 import * as gameService from "../service/game";
-import {CellStatus, RoomEntity} from "../database/types";
+import {RoomEntity} from "../database/types";
 import * as roomsDb from "../database/rooms";
 import * as broadcast from "./broadcast";
 import {GameAttackRequest, GameShipsDto} from "../service/gameTypes";
@@ -24,8 +24,8 @@ export const sendCreateGame = (room: RoomEntity) => {
     })
 }
 
-const sendGameTurn = (gameId: number)=> {
-    const turnInfo = gameService.playerTurn(gameId)
+const sendGameTurn = (gameId: number, isChangePlayer: boolean)=> {
+    const turnInfo = gameService.playerTurn(gameId, isChangePlayer)
     turnInfo.forEach(info => {
         const message = createWsResponse({ currentPlayer: info.currentPlayer }, WebSocketMessageTypes.TURN)
         info.connection.send(message)
@@ -38,7 +38,7 @@ const sendStartGame = (gameId: number)=> {
         const message = createWsResponse(player.gameShips, WebSocketMessageTypes.START_GAME)
         player.connection.send(message)
     })
-    sendGameTurn(gameId)
+    sendGameTurn(gameId, false)
 }
 
 export const handleAddShips = (idHolder: IdHolder, request: string) => {
@@ -60,11 +60,11 @@ export const handleAddShips = (idHolder: IdHolder, request: string) => {
 export const handleAttack = (request: string) => {
     const data = JSON.parse(request) as unknown as GameAttackRequest
     const attackResult = gameService.attack(data)
-    const message = createWsResponse(attackResult.attackInfo, WebSocketMessageTypes.ATTACK)
-    attackResult.playersConnections.forEach(connection => {
-        connection.send(message)
+    attackResult.attackInfos.map(attackInfo => {
+        const message = createWsResponse(attackInfo, WebSocketMessageTypes.ATTACK)
+        attackResult.playersConnections.forEach(connection => {
+            connection.send(message)
+        })
     })
-    if(attackResult.attackInfo.status == CellStatus.MISS) {
-        sendGameTurn(data.gameId)
-    }
+    sendGameTurn(data.gameId, attackResult.isMiss)
 }
