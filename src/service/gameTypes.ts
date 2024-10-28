@@ -6,6 +6,11 @@ export interface GamePlayerDto {
     gameShips: GameShipsDto
 }
 
+export interface GamePlayerInfoDto {
+    connection: WebSocket,
+    userId: number
+}
+
 export interface GameTurnDto {
     connection: WebSocket,
     currentPlayer: number

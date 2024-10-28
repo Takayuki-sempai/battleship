@@ -13,7 +13,7 @@ import {WebSocket} from "ws";
 import {
     GameAttackRequest,
     GameAttackResult,
-    GamePlayerDto,
+    GamePlayerDto, GamePlayerInfoDto,
     GameRandomAttackRequest,
     GameShipsDto,
     GameTurnDto,
@@ -21,7 +21,7 @@ import {
 
 export const playerTurn = (gameId: number, isChangePlayer: boolean): GameTurnDto[] => {
     const game = gameDb.findGame(gameId)!! //TODO что если игра не найдена
-    if(isChangePlayer) game.isTurnsFirst = !game.isTurnsFirst
+    if (isChangePlayer) game.isTurnsFirst = !game.isTurnsFirst
     const currentPlayerId = game.isTurnsFirst ? game.players[0]!!.id : game.players[1]!!.id //TODO возможно добавть проверки
     return game.players.map(player => ({
         connection: player.connection,
@@ -47,7 +47,7 @@ export const isGamePrepared = (gameId: number): boolean => {
 }
 
 export const createGame = (): number => {
-    return gameDb.createGame({isTurnsFirst: true, players: []})
+    return gameDb.createGame({isTurnsFirst: true, isGameFinished: false, players: []})
 }
 
 export const addShip = (ship: GameShip, board: GameBoard) => {
@@ -83,16 +83,19 @@ const setCellStatus = (board: GameBoard, cell: Point, status: CellStatus): CellW
 }
 
 const calculateNearbyCells = (centerPoint: Point): Point[] => {
-    const  nearbyCells: Point[] = [-1, 0, 1].flatMap(xOffset => [-1, 0, 1].map(yOffset => ({x: centerPoint.x + xOffset, y: centerPoint.y + yOffset})))
+    const nearbyCells: Point[] = [-1, 0, 1].flatMap(xOffset => [-1, 0, 1].map(yOffset => ({
+        x: centerPoint.x + xOffset,
+        y: centerPoint.y + yOffset
+    })))
     return nearbyCells.filter(point => point.x < 10 && point.x >= 0 && point.y < 10 && point.y >= 0 && !(point.x === centerPoint.x && point.y === centerPoint.y))
 }
 
 const setSurroundingMisses = (board: GameBoard, startPoint: Point, checkedShipCells: string[]): CellWithStatus[] => {
     const currentCellState = getCellState(board, startPoint)
-    if(currentCellState == 0){
+    if (currentCellState == 0) {
         const cellWithNewStatus = setCellStatus(board, startPoint, CellStatus.MISS)
         return [cellWithNewStatus]
-    } else if(currentCellState === CellStatus.KILLED || currentCellState === CellStatus.SHOT){
+    } else if (currentCellState === CellStatus.KILLED || currentCellState === CellStatus.SHOT) {
         checkedShipCells.push(JSON.stringify(startPoint))
         const nearbyCells = calculateNearbyCells(startPoint)
         return nearbyCells.filter(cell => !checkedShipCells.includes(JSON.stringify(cell))).flatMap(cell => setSurroundingMisses(board, cell, checkedShipCells))
@@ -111,7 +114,6 @@ export const attack = (request: GameAttackRequest): GameAttackResult => {
     const attackedCell = getCellState(attackedPlayer.board, attackedCellPoint)
     let affectedCells: CellWithStatus[] = []
     let isMiss = false
-    let isFinish = false
     if (attackedCell == 0) {
         const cellWithStatus = setCellStatus(attackedPlayer.board, attackedCellPoint, CellStatus.MISS)
         affectedCells.push(cellWithStatus)
@@ -123,7 +125,7 @@ export const attack = (request: GameAttackRequest): GameAttackResult => {
             affectedCells.push(cellWithStatus)
             const additionalCells = setSurroundingMisses(attackedPlayer.board, attackedCellPoint, [])
             affectedCells.push(...additionalCells)
-            isFinish = !checkIsNotFinish(attackedPlayer.board)
+            game.isGameFinished = !checkIsNotFinish(attackedPlayer.board)
         } else {
             const cellWithStatus = setCellStatus(attackedPlayer.board, attackedCellPoint, CellStatus.SHOT)
             affectedCells.push(cellWithStatus)
@@ -132,7 +134,7 @@ export const attack = (request: GameAttackRequest): GameAttackResult => {
     return {
         playersConnections: game.players.map(player => player.connection),
         isMiss: isMiss,
-        isFinish: isFinish,
+        isFinish: game.isGameFinished,
         attackInfos: affectedCells.map(cell => ({
             position: cell.cell,
             status: cell.status,
@@ -146,12 +148,26 @@ const isCellNotShooted = (value: CellState): boolean =>
 export const getNextFreeCell = (request: GameRandomAttackRequest): Point => {
     const game = gameDb.findGame(request.gameId)! //TODO что если игра не найдена
     const attackedPlayer = game.players.find((player) => player.id !== request.indexPlayer)!! //TODO что если игра не найдена
-    for(let i = 0; i < 10; i++) {
-        for(let j = 0; j < 10; j++) {
-            if(isCellNotShooted(attackedPlayer.board[j]![i]!)) {  //TODO Проверка обоих массивов
+    for (let i = 0; i < 10; i++) {
+        for (let j = 0; j < 10; j++) {
+            if (isCellNotShooted(attackedPlayer.board[j]![i]!)) {  //TODO Проверка обоих массивов
                 return {x: j, y: i}
             }
         }
     }
     return {x: 0, y: 0} //TODO возможно ошибку кидать
+}
+
+export const finisAndGetOpponentInfo = (userId: number): GamePlayerInfoDto | null => {
+    const activeGames = gameDb.findActiveGames()
+    const game = activeGames.find(game => game.players.some(player => player.id === userId))
+    if (!game) {
+        return null
+    }
+    game.isGameFinished = true
+    const opponent = game.players.find(player => player.id !== userId)!  //TODO что если игрок не найден
+    return {
+        connection: opponent.connection,
+        userId: opponent.id
+    }
 }

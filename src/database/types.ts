@@ -26,6 +26,7 @@ export enum ShipType {
 
 export interface GameEntity {
     isTurnsFirst: boolean
+    isGameFinished: boolean,
     players: GamePlayer[]
 }
 

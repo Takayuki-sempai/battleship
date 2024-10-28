@@ -1,5 +1,5 @@
 import {RawData, WebSocket, WebSocketServer} from "ws";
-import {handleRegistration} from "../handler/user";
+import {handleDisconnect, handleRegistration} from "../handler/user";
 import {IdHolder, WebSocketMessageTypes} from "../handler/type";
 import {handleAddUserToRoom, handleCreateRoom} from "../handler/room";
 import {handleAddShips, handleAttack, handleRandomAttack} from "../handler/game";
@@ -14,15 +14,14 @@ export const startWebsocket = (port: number)=> {
     const wss = new WebSocketServer({port});
 
     wss.on('connection', (ws: WebSocket) => {
-        const idHolder: IdHolder = {id: undefined}
-        // Send initial data to the client
+        const userIdHolder: IdHolder = {id: undefined}
         console.log("Connect")
 
-        // Track connected clients
-        // ...
         ws.on('close', () => {
             console.log("Connect close")
-            // Code to handle client disconnection
+            if(userIdHolder.id) {
+                handleDisconnect(userIdHolder.id)
+            }
         });
         ws.on('message', (message: RawData) => {
             const request = JSON.parse(message.toString()) as unknown as WebsocketMessage
@@ -30,16 +29,16 @@ export const startWebsocket = (port: number)=> {
 
             switch(request.type) {
                 case WebSocketMessageTypes.REQ:
-                    handleRegistration(ws, idHolder, request.data);
+                    handleRegistration(ws, userIdHolder, request.data); //TODO не пускать если юзер уже подключен
                     break;
                 case WebSocketMessageTypes.CREATE_ROOM:
-                    handleCreateRoom(idHolder);
+                    handleCreateRoom(userIdHolder);
                     break;
                 case WebSocketMessageTypes.ADD_USER_TO_ROOM:
-                    handleAddUserToRoom(idHolder, request.data);
+                    handleAddUserToRoom(userIdHolder, request.data); //TODO Не заходить в свою комнату. Не пускать в другую комнату, если игрок в комнате
                     break;
                 case WebSocketMessageTypes.ADD_SHIPS:
-                    handleAddShips(idHolder, request.data);
+                    handleAddShips(userIdHolder, request.data);
                     break;
                 case WebSocketMessageTypes.ATTACK:
                     handleAttack(request.data); //TODO Что если атаку посылает игрок который сейчас не ходит (написать проверку)

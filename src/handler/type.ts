@@ -14,5 +14,6 @@ export enum WebSocketMessageTypes {
     ATTACK = "attack",
     RANDOM_ATTACK = "randomAttack",
     FINISH = "finish",
-    UPDATE_WINNERS = "update_winners"
+    UPDATE_WINNERS = "update_winners",
+    DICONNECT = "diconnect"
 }

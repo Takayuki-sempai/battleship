@@ -1,10 +1,11 @@
 import {WebSocket} from "ws";
-import {createWsResponse} from "./common";
+import {createWsResponse, createWsResponseString} from "./common";
 import {IdHolder, WebSocketMessageTypes} from "./type";
 import * as connectionsDb from "../database/connections";
 import * as broadcast from "./broadcast";
 import {RegistrationRequest} from "../service/userTypes";
 import * as userService from "../service/user";
+import * as gameService from "../service/game";
 
 export const handleRegistration = (connection: WebSocket, idHolder: IdHolder, request: string) => {
     const data = JSON.parse(request) as unknown as RegistrationRequest
@@ -17,4 +18,15 @@ export const handleRegistration = (connection: WebSocket, idHolder: IdHolder, re
     connection.send(userMessage)
     broadcast.sendAvailableRooms() //TODO запретить заходить под пользователем если пользователь уже подключен
     broadcast.sendWinners()
+}
+
+export const handleDisconnect = (userId: number)=> {
+    connectionsDb.removeConnection(userId)
+    const opponent = gameService.finisAndGetOpponentInfo(userId)
+    if(opponent) {
+        const disconnectResponse = createWsResponseString("", WebSocketMessageTypes.DICONNECT)
+        opponent.connection.send(disconnectResponse)
+        userService.addWins(opponent.userId)
+        broadcast.sendWinners()
+    }
 }

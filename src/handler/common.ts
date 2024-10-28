@@ -10,11 +10,15 @@ interface CreateRoomResponseUser {
     index: number,
 }
 
-export const createWsResponse = (responseData: object, responseType: WebSocketMessageTypes): string => {
+export const createWsResponseString = (responseData: string, responseType: WebSocketMessageTypes): string => {
     const messageResponse = {
         type: responseType,
-        data: JSON.stringify(responseData),
+        data: responseData,
         id: 0,
     }
     return JSON.stringify(messageResponse)
+}
+
+export const createWsResponse = (responseData: object, responseType: WebSocketMessageTypes): string => {
+    return createWsResponseString(JSON.stringify(responseData), responseType)
 }

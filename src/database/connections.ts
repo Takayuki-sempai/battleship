@@ -9,3 +9,7 @@ export const findConnectionById = (userId: number): WebSocket => userConnections
 export const addConnection = (userId: number, connection: WebSocket) => {
     userConnections.set(userId, connection)
 };
+
+export const removeConnection = (userId: number) => {
+    userConnections.delete(userId)
+};
