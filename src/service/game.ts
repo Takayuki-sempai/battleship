@@ -5,11 +5,10 @@ import {
     CellWithStatus,
     GameBoard,
     GamePlayer,
-    GameShip,
+    GameShip, GameSocket,
     Point,
     ShipCounter
 } from "../database/types";
-import {WebSocket} from "ws";
 import {
     GameAttackRequest,
     GameAttackResult,
@@ -18,6 +17,7 @@ import {
     GameShipsDto,
     GameTurnDto,
 } from "./gameTypes";
+import {GameBotInterface} from "./botTypes";
 
 export const playerTurn = (gameId: number, isChangePlayer: boolean): GameTurnDto[] => {
     const game = gameDb.findGame(gameId)!! //TODO что если игра не найдена
@@ -46,8 +46,12 @@ export const isGamePrepared = (gameId: number): boolean => {
     return game.players.length == 2
 }
 
+const emptyBot: GameBotInterface = {
+    onAddShips: () => {}
+}
+
 export const createGame = (): number => {
-    return gameDb.createGame({isTurnsFirst: true, isGameFinished: false, players: []})
+    return gameDb.createGame({isTurnsFirst: true, isGameFinished: false, bot: emptyBot, players: []})
 }
 
 export const addShip = (ship: GameShip, board: GameBoard) => {
@@ -63,7 +67,7 @@ export const addShip = (ship: GameShip, board: GameBoard) => {
     }
 }
 
-export const addShips = (request: GameShipsDto, userId: number, connection: WebSocket) => {
+export const addShips = (request: GameShipsDto, userId: number, connection: GameSocket) => {
     const game = gameDb.findGame(request.gameId)! //TODO что если игра не найдена
     const board: GameBoard = Array.from({length: 40}, () => Array(10).fill(0))
     request.ships.map(ship => addShip(ship, board))
@@ -74,6 +78,7 @@ export const addShips = (request: GameShipsDto, userId: number, connection: WebS
         ships: request.ships
     }
     game.players.push(player)
+    game.bot.onAddShips(userId, request.gameId)
 }
 
 const getCellState = (board: GameBoard, point: Point): CellState => board[point.x]![point.y]! //TODO Проверка обоих массивов
@@ -170,4 +175,9 @@ export const finisAndGetOpponentInfo = (userId: number): GamePlayerInfoDto | nul
         connection: opponent.connection,
         userId: opponent.id
     }
+}
+
+export const addBot = (gameId: number, gameBot: GameBotInterface) => {
+    const game = gameDb.findGame(gameId)! //TODO что если игра не найдена
+    game.bot = gameBot
 }

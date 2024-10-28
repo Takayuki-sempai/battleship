@@ -1,5 +1,5 @@
-export const IdGenerator = () => {
-    let currentUserId = 0;
+export const IdGenerator = (seed?: number) => {
+    let currentUserId = seed || 0;
     const getNextId = () => ++currentUserId
     return {getNextId}
 }

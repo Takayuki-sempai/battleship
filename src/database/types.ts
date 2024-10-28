@@ -1,4 +1,8 @@
-import {WebSocket} from "ws";
+import {GameBotInterface} from "../service/botTypes";
+
+export interface GameSocket {
+    send: (data: string, cb?: (err?: Error) => void) => void;
+}
 
 export interface UserCreateRequest {
     name: string,
@@ -27,11 +31,12 @@ export enum ShipType {
 export interface GameEntity {
     isTurnsFirst: boolean
     isGameFinished: boolean,
+    bot: GameBotInterface,
     players: GamePlayer[]
 }
 
 export interface GamePlayer {
-    connection: WebSocket,
+    connection: GameSocket,
     id: number,
     board: GameBoard
     ships: GameShip[]

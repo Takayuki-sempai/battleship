@@ -24,5 +24,5 @@ export const handleAddUserToRoom = (idHolder: IdHolder, request: string) => {
     }
     const room = roomsDb.addUserToRoom(idHolder.id, data.indexRoom)
     broadcast.sendAvailableRooms()
-    game.sendCreateGame(room)
+    game.sendCreateGame(room.userIds)
 }

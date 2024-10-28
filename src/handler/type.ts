@@ -1,3 +1,9 @@
+export interface WebsocketMessage {
+    type: string,
+    data: string,
+    id: number,
+}
+
 export interface IdHolder {
     id?: number
 }
@@ -15,5 +21,10 @@ export enum WebSocketMessageTypes {
     RANDOM_ATTACK = "randomAttack",
     FINISH = "finish",
     UPDATE_WINNERS = "update_winners",
-    DICONNECT = "diconnect"
+    DICONNECT = "diconnect",
+    SINGLE_PLAY = "single_play"
+}
+
+export interface TurnResponse {
+    currentPlayer: number
 }

@@ -1,18 +1,17 @@
-import {WebSocket} from "ws";
-import {CellStatus, GameShip, Point} from "../database/types";
+import {CellStatus, GameShip, GameSocket, Point} from "../database/types";
 
 export interface GamePlayerDto {
-    connection: WebSocket,
+    connection: GameSocket,
     gameShips: GameShipsDto
 }
 
 export interface GamePlayerInfoDto {
-    connection: WebSocket,
+    connection: GameSocket,
     userId: number
 }
 
 export interface GameTurnDto {
-    connection: WebSocket,
+    connection: GameSocket,
     currentPlayer: number
 }
 
@@ -34,7 +33,7 @@ export interface GameAttackRequest {
 }
 
 export interface GameAttackResult {
-    playersConnections: WebSocket[],
+    playersConnections: GameSocket[],
     isMiss: boolean,
     isFinish: boolean,
     attackInfos: GameAttackInfo[]

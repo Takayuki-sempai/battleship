@@ -1,14 +1,8 @@
 import {RawData, WebSocket, WebSocketServer} from "ws";
 import {handleDisconnect, handleRegistration} from "../handler/user";
-import {IdHolder, WebSocketMessageTypes} from "../handler/type";
+import {IdHolder, WebsocketMessage, WebSocketMessageTypes} from "../handler/type";
 import {handleAddUserToRoom, handleCreateRoom} from "../handler/room";
-import {handleAddShips, handleAttack, handleRandomAttack} from "../handler/game";
-
-interface WebsocketMessage {
-    type: string,
-    data: string,
-    id: number,
-}
+import {handleAddShips, handleAttack, handleCreateSinglePlay, handleRandomAttack} from "../handler/game";
 
 export const startWebsocket = (port: number)=> {
     const wss = new WebSocketServer({port});
@@ -38,13 +32,16 @@ export const startWebsocket = (port: number)=> {
                     handleAddUserToRoom(userIdHolder, request.data); //TODO Не заходить в свою комнату. Не пускать в другую комнату, если игрок в комнате
                     break;
                 case WebSocketMessageTypes.ADD_SHIPS:
-                    handleAddShips(userIdHolder, request.data);
+                    handleAddShips(ws, userIdHolder, request.data);
                     break;
                 case WebSocketMessageTypes.ATTACK:
                     handleAttack(request.data); //TODO Что если атаку посылает игрок который сейчас не ходит (написать проверку)
                     break;
                 case WebSocketMessageTypes.RANDOM_ATTACK:
                     handleRandomAttack(request.data);
+                    break;
+                case WebSocketMessageTypes.SINGLE_PLAY:
+                    handleCreateSinglePlay(userIdHolder, );
                     break;
                 default: console.log(`Handler for message with type ${request.type} not found`);
             }

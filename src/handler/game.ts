@@ -1,26 +1,26 @@
 import {createWsResponse} from "./common";
-import {IdHolder, WebSocketMessageTypes} from "./type";
+import {IdHolder, TurnResponse, WebSocketMessageTypes} from "./type";
 import * as connectionsDb from "../database/connections";
 import * as gameService from "../service/game";
-import {RoomEntity} from "../database/types";
 import * as userService from "../service/user";
 import * as broadcast from "./broadcast";
+import * as bot from "../bot/bot";
 import {
     GameAttackRequest,
     GameAttackResponse,
     GameRandomAttackRequest,
     GameShipsDto
 } from "../service/gameTypes";
-import {WebSocket} from "ws";
+import {GameSocket} from "../database/types";
 
 interface CreateGameResponse {
     idGame: number,
     idPlayer: number
 }
 
-export const sendCreateGame = (room: RoomEntity) => {
+export const sendCreateGame = (userIds: number[]): number => {
     const gameId = gameService.createGame()
-    room.userIds.forEach(userId => {
+    userIds.forEach(userId => {
         const response: CreateGameResponse = {
             idGame: gameId,
             idPlayer: userId
@@ -28,12 +28,14 @@ export const sendCreateGame = (room: RoomEntity) => {
         const message = createWsResponse(response, WebSocketMessageTypes.CREATE_GAME)
         connectionsDb.findConnectionById(userId).send(message)
     })
+    return gameId
 }
 
 const sendGameTurn = (gameId: number, isChangePlayer: boolean)=> {
     const turnInfo = gameService.playerTurn(gameId, isChangePlayer)
     turnInfo.forEach(info => {
-        const message = createWsResponse({ currentPlayer: info.currentPlayer }, WebSocketMessageTypes.TURN)
+        const response: TurnResponse = { currentPlayer: info.currentPlayer }
+        const message = createWsResponse(response, WebSocketMessageTypes.TURN)
         info.connection.send(message)
     })
 }
@@ -47,17 +49,16 @@ const sendStartGame = (gameId: number)=> {
     sendGameTurn(gameId, false)
 }
 
-export const handleAddShips = (idHolder: IdHolder, request: string) => {
+export const handleAddShips = (connection: GameSocket, idHolder: IdHolder, request: string) => {
     const data = JSON.parse(request) as unknown as GameShipsDto
     const userId = idHolder.id!!
-    const userConnection = connectionsDb.findConnectionById(idHolder.id!!) //TODO проверка
-    gameService.addShips(data, userId, userConnection)
+    gameService.addShips(data, userId, connection)
     if(gameService.isGamePrepared(data.gameId)) {
         sendStartGame(data.gameId)
     }
 }
 
-const sendGameFinish = (playersConnections: WebSocket[], winPlayer: number)=> {
+const sendGameFinish = (playersConnections: GameSocket[], winPlayer: number)=> {
     const finishMessage = createWsResponse({winPlayer: winPlayer}, WebSocketMessageTypes.FINISH)
     playersConnections.forEach(connection => {
         connection.send(finishMessage)
@@ -91,4 +92,10 @@ export const handleRandomAttack = (request: string) => {
     const freeCell = gameService.getNextFreeCell(data)
     const attackRequest: GameAttackRequest = {...data, x: freeCell.x, y: freeCell.y}
     handleAttackParsed(attackRequest)
+}
+
+export const handleCreateSinglePlay = (idHolder: IdHolder) => {
+    const gameId = sendCreateGame([idHolder.id!]) //TODO Проверка на существование
+    const gameBot = bot.createBot()
+    gameService.addBot(gameId, gameBot)
 }
