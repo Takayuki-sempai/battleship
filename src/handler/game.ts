@@ -4,6 +4,7 @@ import * as connectionsDb from "../database/connections";
 import * as gameService from "../service/game";
 import {RoomEntity} from "../database/types";
 import * as roomsDb from "../database/rooms";
+import * as userService from "../service/user";
 import * as broadcast from "./broadcast";
 import {
     GameAttackRequest,
@@ -68,6 +69,8 @@ const sendGameFinish = (playersConnections: WebSocket[], winPlayer: number)=> {
     playersConnections.forEach(connection => {
         connection.send(finishMessage)
     })
+    userService.addWins(winPlayer)
+    broadcast.sendWinners()
 }
 
 const handleAttackParsed = (data: GameAttackRequest) => {

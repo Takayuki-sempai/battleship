@@ -8,7 +8,8 @@ export interface UserCreateRequest {
 export interface UserEntity {
     id: number;
     name: string,
-    password: string
+    password: string,
+    wins: number,
 }
 
 export interface RoomEntity {
@@ -63,4 +64,10 @@ export interface Point {
 export interface CellWithStatus {
     cell: Point,
     status: CellStatus,
+}
+
+export interface WinnerEntity {
+    id: number,
+    name: string,
+    wins: number
 }
