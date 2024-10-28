@@ -2,7 +2,7 @@ import {RawData, WebSocket, WebSocketServer} from "ws";
 import {handleRegistration} from "../handler/users";
 import {IdHolder, WebSocketMessageTypes} from "../handler/type";
 import {handleAddUserToRoom, handleCreateRoom} from "../handler/room";
-import {handleAddShips, handleAttack} from "../handler/game";
+import {handleAddShips, handleAttack, handleRandomAttack} from "../handler/game";
 
 interface WebsocketMessage {
     type: string,
@@ -43,6 +43,9 @@ export const startWebsocket = (port: number)=> {
                     break;
                 case WebSocketMessageTypes.ATTACK:
                     handleAttack(request.data); //TODO Что если атаку посылает игрок который сейчас не ходит (написать проверку)
+                    break;
+                case WebSocketMessageTypes.RANDOM_ATTACK:
+                    handleRandomAttack(request.data);
                     break;
                 default: console.log(`Handler for message with type ${request.type} not found`);
             }

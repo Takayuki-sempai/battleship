@@ -10,7 +10,14 @@ import {
     ShipCounter
 } from "../database/types";
 import {WebSocket} from "ws";
-import {GameAttackRequest, GameAttackResponse, GamePlayerDto, GameShipsDto, GameTurnDto,} from "./gameTypes";
+import {
+    GameAttackRequest,
+    GameAttackResponse,
+    GamePlayerDto,
+    GameRandomAttackRequest,
+    GameShipsDto,
+    GameTurnDto,
+} from "./gameTypes";
 
 export const playerTurn = (gameId: number, isChangePlayer: boolean): GameTurnDto[] => {
     const game = gameDb.findGame(gameId)!! //TODO что если игра не найдена
@@ -126,4 +133,20 @@ export const attack = (request: GameAttackRequest): GameAttackResponse => {
             status: cell.status,
         }))
     }
+}
+
+const isCellNotShooted = (value: CellState): boolean =>
+    value === 0 || typeof value === 'object'
+
+export const getNextFreeCell = (request: GameRandomAttackRequest): Point => {
+    const game = gameDb.findGame(request.gameId)! //TODO что если игра не найдена
+    const attackedPlayer = game.players.find((player) => player.id !== request.indexPlayer)!! //TODO что если игра не найдена
+    for(let i = 0; i < 10; i++) {
+        for(let j = 0; j < 10; j++) {
+            if(isCellNotShooted(attackedPlayer.board[j]![i]!)) {  //TODO Проверка обоих массивов
+                return {x: j, y: i}
+            }
+        }
+    }
+    return {x: 0, y: 0} //TODO возможно ошибку кидать
 }

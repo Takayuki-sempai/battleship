@@ -16,6 +16,11 @@ export interface GameShipsDto {
     ships: GameShip[]
 }
 
+export interface GameRandomAttackRequest {
+    gameId: number,
+    indexPlayer: number
+}
+
 export interface GameAttackRequest {
     x: number,
     y: number,

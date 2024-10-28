@@ -5,7 +5,7 @@ import * as gameService from "../service/game";
 import {RoomEntity} from "../database/types";
 import * as roomsDb from "../database/rooms";
 import * as broadcast from "./broadcast";
-import {GameAttackRequest, GameShipsDto} from "../service/gameTypes";
+import {GameAttackRequest, GameRandomAttackRequest, GameShipsDto} from "../service/gameTypes";
 
 interface CreateGameResponse {
     idGame: number,
@@ -57,8 +57,7 @@ export const handleAddShips = (idHolder: IdHolder, request: string) => {
     broadcast.sendAvailableRooms()
 }
 
-export const handleAttack = (request: string) => {
-    const data = JSON.parse(request) as unknown as GameAttackRequest
+export const handleAttackParsed = (data: GameAttackRequest) => {
     const attackResult = gameService.attack(data)
     attackResult.attackInfos.map(attackInfo => {
         const message = createWsResponse(attackInfo, WebSocketMessageTypes.ATTACK)
@@ -67,4 +66,16 @@ export const handleAttack = (request: string) => {
         })
     })
     sendGameTurn(data.gameId, attackResult.isMiss)
+}
+
+export const handleAttack = (request: string) => {
+    const data = JSON.parse(request) as unknown as GameAttackRequest
+    handleAttackParsed(data)
+}
+
+export const handleRandomAttack = (request: string) => {
+    const data = JSON.parse(request) as unknown as GameRandomAttackRequest
+    const freeCell = gameService.getNextFreeCell(data)
+    const attackRequest: GameAttackRequest = {...data, x: freeCell.x, y: freeCell.y}
+    handleAttackParsed(attackRequest)
 }
