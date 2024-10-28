@@ -19,17 +19,17 @@ import {
 } from "./gameTypes";
 
 export const getCurrentPlayerId = (gameId: number): number => {
-    const game = gameDb.findGame(gameId)!! //TODO что если игра не найдена
-    return game.isTurnsFirst ? game.players[0]!!.id : game.players[1]!!.id //TODO возможно добавть проверки
+    const game = gameDb.findGame(gameId)!!
+    return game.isTurnsFirst ? game.players[0]!!.id : game.players[1]!!.id
 }
 
 export const changeCurrentPlayer = (gameId: number) => {
-    const game = gameDb.findGame(gameId)!! //TODO что если игра не найдена
+    const game = gameDb.findGame(gameId)!!
     game.isTurnsFirst = !game.isTurnsFirst
 }
 
 export const playerTurn = (gameId: number, isChangePlayer: boolean): GameTurnDto[] => {
-    const game = gameDb.findGame(gameId)!! //TODO что если игра не найдена
+    const game = gameDb.findGame(gameId)!!
     if (isChangePlayer) game.isTurnsFirst = !game.isTurnsFirst
     const currentPlayerId = getCurrentPlayerId(gameId)
     return game.players.map(player => ({

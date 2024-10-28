@@ -23,13 +23,13 @@ export const startWebsocket = (port: number)=> {
 
             switch(request.type) {
                 case WebSocketMessageTypes.REQ:
-                    handleRegistration(ws, userIdHolder, request.data); //TODO не пускать если юзер уже подключен
+                    handleRegistration(ws, userIdHolder, request.data);
                     break;
                 case WebSocketMessageTypes.CREATE_ROOM:
                     handleCreateRoom(userIdHolder);
                     break;
                 case WebSocketMessageTypes.ADD_USER_TO_ROOM:
-                    handleAddUserToRoom(userIdHolder, request.data); //TODO Не заходить в свою комнату. Не пускать в другую комнату, если игрок в комнате
+                    handleAddUserToRoom(userIdHolder, request.data);
                     break;
                 case WebSocketMessageTypes.ADD_SHIPS:
                     handleAddShips(ws, userIdHolder, request.data);

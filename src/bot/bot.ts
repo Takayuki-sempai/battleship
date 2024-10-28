@@ -30,7 +30,7 @@ export const addBotToGame = (gameId: number) => {
             if(data.currentPlayer == botIdHolder.id!!) {
                 const randomAttack: GameRandomAttackRequest = {
                     gameId: gameId,
-                    indexPlayer: botIdHolder.id! //TODO Проверка
+                    indexPlayer: botIdHolder.id!
                 }
                 gameHandler.handleRandomAttack(JSON.stringify(randomAttack))
             }

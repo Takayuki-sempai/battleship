@@ -12,7 +12,7 @@ export const sendAvailableRooms = () => {
         roomUsers: room.userIds.map(userId => {
             const user = usersDb.findUser(userId)
             return {
-                name: user!!.name, //TODO возможно обрабатывать
+                name: user!!.name,
                 index: user!!.id,
             }
         })
