@@ -1,4 +1,5 @@
 import * as usersDb from "../database/users";
+import * as connectionsDb from "../database/connections";
 import {RegistrationRequest, RegistrationResponse, WinnersResponse} from "./userTypes";
 import {UserEntity} from "../database/types";
 
@@ -19,11 +20,14 @@ const createErrorResponse = (error: string): RegistrationResponse => ({
 export const register = (request: RegistrationRequest): RegistrationResponse => {
     const user = usersDb.findUserByName(request.name)
     if (user) {
-        if(user.password == request.password) {
-            return createResponse(user)
-        } else {
+        if(user.password != request.password) {
             return createErrorResponse(`User with name ${request.name} already exists`)
         }
+        const connection = connectionsDb.findConnectionById(user.id)
+        if(connection) {
+            return createErrorResponse(`User with name ${request.name} already in game`)
+        }
+        return createResponse(user)
     } else {
         const user = usersDb.createUser(request)
         return createResponse(user)

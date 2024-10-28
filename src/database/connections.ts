@@ -4,7 +4,7 @@ const userConnections: Map<number, GameSocket> = new Map();
 
 export const getAllConnections = (): GameSocket[] => Array.from(userConnections.values())
 
-export const findConnectionById = (userId: number): GameSocket => userConnections.get(userId)!! //TODO возможно эксепшен
+export const findConnectionById = (userId: number): GameSocket | undefined => userConnections.get(userId)
 
 export const addConnection = (userId: number, connection: GameSocket) => {
     userConnections.set(userId, connection)

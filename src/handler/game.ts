@@ -27,7 +27,7 @@ export const sendCreateGame = (userIds: number[]): number => {
             idPlayer: userId
         }
         const message = createWsResponse(response, WebSocketMessageTypes.CREATE_GAME)
-        connectionsDb.findConnectionById(userId).send(message)
+        connectionsDb.findConnectionById(userId)?.send(message)
     })
     return gameId
 }
