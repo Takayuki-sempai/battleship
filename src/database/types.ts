@@ -1,5 +1,3 @@
-import {GameBotInterface} from "../service/botTypes";
-
 export interface GameSocket {
     send: (data: string, cb?: (err?: Error) => void) => void;
 }
@@ -31,7 +29,6 @@ export enum ShipType {
 export interface GameEntity {
     isTurnsFirst: boolean
     isGameFinished: boolean,
-    bot: GameBotInterface,
     players: GamePlayer[]
 }
 

@@ -101,6 +101,5 @@ export const handleRandomAttack = (request: string) => {
 
 export const handleCreateSinglePlay = (idHolder: IdHolder) => {
     const gameId = sendCreateGame([idHolder.id!]) //TODO Проверка на существование
-    const gameBot = bot.createBot()
-    gameService.addBot(gameId, gameBot)
+    bot.addBotToGame(gameId)
 }

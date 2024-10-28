@@ -17,11 +17,15 @@ import {
     GameShipsDto,
     GameTurnDto,
 } from "./gameTypes";
-import {GameBotInterface} from "./botTypes";
 
 export const getCurrentPlayerId = (gameId: number): number => {
     const game = gameDb.findGame(gameId)!! //TODO что если игра не найдена
     return game.isTurnsFirst ? game.players[0]!!.id : game.players[1]!!.id //TODO возможно добавть проверки
+}
+
+export const changeCurrentPlayer = (gameId: number) => {
+    const game = gameDb.findGame(gameId)!! //TODO что если игра не найдена
+    game.isTurnsFirst = !game.isTurnsFirst
 }
 
 export const playerTurn = (gameId: number, isChangePlayer: boolean): GameTurnDto[] => {
@@ -51,12 +55,8 @@ export const isGamePrepared = (gameId: number): boolean => {
     return game.players.length == 2
 }
 
-const emptyBot: GameBotInterface = {
-    onAddShips: () => {}
-}
-
 export const createGame = (): number => {
-    return gameDb.createGame({isTurnsFirst: true, isGameFinished: false, bot: emptyBot, players: []})
+    return gameDb.createGame({isTurnsFirst: true, isGameFinished: false, players: []})
 }
 
 export const addShip = (ship: GameShip, board: GameBoard) => {
@@ -83,7 +83,7 @@ export const addShips = (request: GameShipsDto, userId: number, connection: Game
         ships: request.ships
     }
     game.players.push(player)
-    game.bot.onAddShips(userId, request.gameId)
+    // game.bot.onAddShips(userId, request.gameId)
 }
 
 const getCellState = (board: GameBoard, point: Point): CellState => board[point.x]![point.y]! //TODO Проверка обоих массивов
@@ -180,9 +180,4 @@ export const finisAndGetOpponentInfo = (userId: number): GamePlayerInfoDto | nul
         connection: opponent.connection,
         userId: opponent.id
     }
-}
-
-export const addBot = (gameId: number, gameBot: GameBotInterface) => {
-    const game = gameDb.findGame(gameId)! //TODO что если игра не найдена
-    game.bot = gameBot
 }

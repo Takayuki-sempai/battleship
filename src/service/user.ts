@@ -42,6 +42,8 @@ export const getWinners = (): WinnersResponse[] => {
 }
 
 export const addWins = (userId: number) => {
-    const user = usersDb.findUser(userId)! //TODO возможно обрабатывать
-    user.wins++
+    const user = usersDb.findUser(userId)
+    if (user) {
+        user.wins++
+    }
 }

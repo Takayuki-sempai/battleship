@@ -1,5 +1,5 @@
-import {GameBotInterface} from "../service/botTypes";
 import * as gameHandler from "../handler/game";
+import * as gameService from "../service/game";
 import {IdGenerator} from "../utils/utils";
 import {IdHolder, TurnResponse, WebsocketMessage, WebSocketMessageTypes} from "../handler/type";
 import {GameSocket} from "../database/types";
@@ -8,9 +8,8 @@ import {GameRandomAttackRequest} from "../service/gameTypes";
 
 const botIdGenerator = IdGenerator(100_000)
 
-export const createBot = (): GameBotInterface => {
+export const addBotToGame = (gameId: number) => {
     const botIdHolder: IdHolder = {id: botIdGenerator.getNextId()}
-    let currentGameId: number | undefined;
     const addShipsRequest = '{"gameId":1,"ships":[' +
         '{"position":{"x":0,"y":0},"direction":false,"type":"huge","length":4},' +
         '{"position":{"x":0,"y":9},"direction":false,"type":"large","length":3},' +
@@ -30,24 +29,15 @@ export const createBot = (): GameBotInterface => {
             const data = JSON.parse(request.data.toString()) as unknown as TurnResponse
             if(data.currentPlayer == botIdHolder.id!!) {
                 const randomAttack: GameRandomAttackRequest = {
-                    gameId: currentGameId!, //TODO Проверка
+                    gameId: gameId,
                     indexPlayer: botIdHolder.id! //TODO Проверка
                 }
                 gameHandler.handleRandomAttack(JSON.stringify(randomAttack))
             }
         }
     }
-
-    const addShips = (userId: number, gameId: number) => {
-        if(userId != botIdHolder.id) {
-            currentGameId = gameId
-            const fakeConnection: GameSocket = {send: onMessage};
-            connectionsDb.addConnection(botIdHolder.id!!, fakeConnection)
-            gameHandler.handleAddShips(fakeConnection, botIdHolder, addShipsRequest)
-        }
-    }
-
-    return {
-        onAddShips: addShips
-    }
+    const fakeConnection: GameSocket = {send: onMessage};
+    connectionsDb.addConnection(botIdHolder.id!!, fakeConnection)
+    gameHandler.handleAddShips(fakeConnection, botIdHolder, addShipsRequest)
+    gameService.changeCurrentPlayer(gameId)
 }
