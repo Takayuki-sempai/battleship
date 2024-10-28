@@ -19,10 +19,15 @@ import {
 } from "./gameTypes";
 import {GameBotInterface} from "./botTypes";
 
+export const getCurrentPlayerId = (gameId: number): number => {
+    const game = gameDb.findGame(gameId)!! //TODO что если игра не найдена
+    return game.isTurnsFirst ? game.players[0]!!.id : game.players[1]!!.id //TODO возможно добавть проверки
+}
+
 export const playerTurn = (gameId: number, isChangePlayer: boolean): GameTurnDto[] => {
     const game = gameDb.findGame(gameId)!! //TODO что если игра не найдена
     if (isChangePlayer) game.isTurnsFirst = !game.isTurnsFirst
-    const currentPlayerId = game.isTurnsFirst ? game.players[0]!!.id : game.players[1]!!.id //TODO возможно добавть проверки
+    const currentPlayerId = getCurrentPlayerId(gameId)
     return game.players.map(player => ({
         connection: player.connection,
         currentPlayer: currentPlayerId

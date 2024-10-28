@@ -12,6 +12,7 @@ import {
     GameShipsDto
 } from "../service/gameTypes";
 import {GameSocket} from "../database/types";
+import {getCurrentPlayerId} from "../service/game";
 
 interface CreateGameResponse {
     idGame: number,
@@ -68,6 +69,10 @@ const sendGameFinish = (playersConnections: GameSocket[], winPlayer: number)=> {
 }
 
 const handleAttackParsed = (data: GameAttackRequest) => {
+    const currentPlayerId = getCurrentPlayerId(data.gameId)
+    if(currentPlayerId !== data.indexPlayer) {
+        return
+    }
     const attackResult = gameService.attack(data)
     attackResult.attackInfos.map(attackInfo => {
         const attackResponse: GameAttackResponse = {...attackInfo, currentPlayer: data.indexPlayer}
