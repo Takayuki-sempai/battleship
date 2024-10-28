@@ -5,7 +5,13 @@ import * as gameService from "../service/game";
 import {RoomEntity} from "../database/types";
 import * as roomsDb from "../database/rooms";
 import * as broadcast from "./broadcast";
-import {GameAttackRequest, GameRandomAttackRequest, GameShipsDto} from "../service/gameTypes";
+import {
+    GameAttackRequest,
+    GameAttackResponse,
+    GameRandomAttackRequest,
+    GameShipsDto
+} from "../service/gameTypes";
+import {WebSocket} from "ws";
 
 interface CreateGameResponse {
     idGame: number,
@@ -57,15 +63,26 @@ export const handleAddShips = (idHolder: IdHolder, request: string) => {
     broadcast.sendAvailableRooms()
 }
 
-export const handleAttackParsed = (data: GameAttackRequest) => {
+const sendGameFinish = (playersConnections: WebSocket[], winPlayer: number)=> {
+    const finishMessage = createWsResponse({winPlayer: winPlayer}, WebSocketMessageTypes.FINISH)
+    playersConnections.forEach(connection => {
+        connection.send(finishMessage)
+    })
+}
+
+const handleAttackParsed = (data: GameAttackRequest) => {
     const attackResult = gameService.attack(data)
     attackResult.attackInfos.map(attackInfo => {
-        const message = createWsResponse(attackInfo, WebSocketMessageTypes.ATTACK)
+        const attackResponse: GameAttackResponse = {...attackInfo, currentPlayer: data.indexPlayer}
+        const message = createWsResponse(attackResponse, WebSocketMessageTypes.ATTACK)
         attackResult.playersConnections.forEach(connection => {
             connection.send(message)
         })
     })
     sendGameTurn(data.gameId, attackResult.isMiss)
+    if(attackResult.isFinish) {
+        sendGameFinish(attackResult.playersConnections, data.indexPlayer)
+    }
 }
 
 export const handleAttack = (request: string) => {

@@ -28,14 +28,20 @@ export interface GameAttackRequest {
     indexPlayer: number
 }
 
-export interface GameAttackResponse {
+export interface GameAttackResult {
     playersConnections: WebSocket[],
     isMiss: boolean,
+    isFinish: boolean,
     attackInfos: GameAttackInfo[]
 }
 
 export interface GameAttackInfo {
     position: Point,
-    currentPlayer: number,
     status: CellStatus
+}
+
+export interface GameAttackResponse {
+    position: Point,
+    status: CellStatus,
+    currentPlayer: number,
 }

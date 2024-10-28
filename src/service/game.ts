@@ -12,7 +12,7 @@ import {
 import {WebSocket} from "ws";
 import {
     GameAttackRequest,
-    GameAttackResponse,
+    GameAttackResult,
     GamePlayerDto,
     GameRandomAttackRequest,
     GameShipsDto,
@@ -101,13 +101,17 @@ const setSurroundingMisses = (board: GameBoard, startPoint: Point, checkedShipCe
     }
 }
 
-export const attack = (request: GameAttackRequest): GameAttackResponse => {
+const checkIsNotFinish = (board: GameBoard): boolean =>
+    board.some(row => row.some(cell => typeof cell === "object"))
+
+export const attack = (request: GameAttackRequest): GameAttackResult => {
     const game = gameDb.findGame(request.gameId)! //TODO что если игра не найдена
     const attackedPlayer = game.players.find((player) => player.id !== request.indexPlayer)!! //TODO что если игра не найдена
     const attackedCellPoint = {x: request.x, y: request.y,}
     const attackedCell = getCellState(attackedPlayer.board, attackedCellPoint)
     let affectedCells: CellWithStatus[] = []
     let isMiss = false
+    let isFinish = false
     if (attackedCell == 0) {
         const cellWithStatus = setCellStatus(attackedPlayer.board, attackedCellPoint, CellStatus.MISS)
         affectedCells.push(cellWithStatus)
@@ -119,6 +123,7 @@ export const attack = (request: GameAttackRequest): GameAttackResponse => {
             affectedCells.push(cellWithStatus)
             const additionalCells = setSurroundingMisses(attackedPlayer.board, attackedCellPoint, [])
             affectedCells.push(...additionalCells)
+            isFinish = !checkIsNotFinish(attackedPlayer.board)
         } else {
             const cellWithStatus = setCellStatus(attackedPlayer.board, attackedCellPoint, CellStatus.SHOT)
             affectedCells.push(cellWithStatus)
@@ -127,9 +132,9 @@ export const attack = (request: GameAttackRequest): GameAttackResponse => {
     return {
         playersConnections: game.players.map(player => player.connection),
         isMiss: isMiss,
+        isFinish: isFinish,
         attackInfos: affectedCells.map(cell => ({
             position: cell.cell,
-            currentPlayer: request.indexPlayer,
             status: cell.status,
         }))
     }
