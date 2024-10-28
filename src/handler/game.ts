@@ -3,7 +3,6 @@ import {IdHolder, WebSocketMessageTypes} from "./type";
 import * as connectionsDb from "../database/connections";
 import * as gameService from "../service/game";
 import {RoomEntity} from "../database/types";
-import * as roomsDb from "../database/rooms";
 import * as userService from "../service/user";
 import * as broadcast from "./broadcast";
 import {
@@ -56,12 +55,6 @@ export const handleAddShips = (idHolder: IdHolder, request: string) => {
     if(gameService.isGamePrepared(data.gameId)) {
         sendStartGame(data.gameId)
     }
-    if(!idHolder.id) {
-        console.log("User id not found")
-        return
-    }
-    roomsDb.addRoom(idHolder.id)
-    broadcast.sendAvailableRooms()
 }
 
 const sendGameFinish = (playersConnections: WebSocket[], winPlayer: number)=> {
